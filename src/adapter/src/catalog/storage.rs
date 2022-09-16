@@ -507,16 +507,16 @@ impl<S: Append> Connection<S> {
     }
 
     /// Load the persisted mapping of system object to global ID. Key is (schema-name, object-name).
-    pub async fn load_system_gids(
+    pub async fn load_system_item_gids(
         &mut self,
-    ) -> Result<BTreeMap<(String, String), (GlobalId, u64)>, Error> {
+    ) -> Result<BTreeMap<(String, String, String), (GlobalId, u64)>, Error> {
         Ok(COLLECTION_SYSTEM_GID_MAPPING
             .peek_one(&mut self.stash)
             .await?
             .into_iter()
             .map(|(k, v)| {
                 (
-                    (k.schema_name, k.object_name),
+                    (k.schema_name, k.object_name, k.object_type),
                     (GlobalId::System(v.id), v.fingerprint),
                 )
             })
@@ -566,6 +566,7 @@ impl<S: Append> Connection<S> {
             |SystemObjectMapping {
                  schema_name,
                  object_name,
+                 object_type,
                  id,
                  fingerprint,
              }| {
@@ -578,6 +579,7 @@ impl<S: Append> Connection<S> {
                     GidMappingKey {
                         schema_name,
                         object_name,
+                        object_type,
                     },
                     GidMappingValue { id, fingerprint },
                 )
@@ -748,7 +750,7 @@ pub async fn transaction<'a, S: Append>(stash: &'a mut S) -> Result<Transaction<
     let configs = COLLECTION_CONFIG.peek_one(stash).await?;
     let settings = COLLECTION_SETTING.peek_one(stash).await?;
     let timestamps = COLLECTION_TIMESTAMP.peek_one(stash).await?;
-    let system_gid_mapping = COLLECTION_SYSTEM_GID_MAPPING.peek_one(stash).await?;
+    let system_item_gid_mapping = COLLECTION_SYSTEM_GID_MAPPING.peek_one(stash).await?;
     let system_configurations = COLLECTION_SYSTEM_CONFIGURATION.peek_one(stash).await?;
 
     Ok(Transaction {
@@ -1445,6 +1447,7 @@ struct IdAllocValue {
 struct GidMappingKey {
     schema_name: String,
     object_name: String,
+    object_type: String,
 }
 
 #[derive(Clone, Deserialize, Serialize, PartialOrd, PartialEq, Eq, Ord)]

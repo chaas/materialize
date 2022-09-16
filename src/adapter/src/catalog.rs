@@ -1644,6 +1644,7 @@ struct AllocatedBuiltinSystemIds<T> {
 pub struct SystemObjectMapping {
     schema_name: String,
     object_name: String,
+    object_type: String,
     id: GlobalId,
     fingerprint: u64,
 }
@@ -1871,7 +1872,7 @@ impl<S: Append> Catalog<S> {
                     .collect(),
                 |builtin| {
                     persisted_builtin_ids
-                        .get(&(builtin.schema().to_string(), builtin.name().to_string()))
+                        .get(&(builtin.schema().to_string(), builtin.name().to_string(), builtin.object_type().to_string()))
                         .cloned()
                 },
             )
@@ -1958,6 +1959,7 @@ impl<S: Append> Catalog<S> {
             .map(|(builtin, id)| SystemObjectMapping {
                 schema_name: builtin.schema().to_string(),
                 object_name: builtin.name().to_string(),
+                object_type: builtin.object_type().to_string(),
                 id: *id,
                 fingerprint: builtin.fingerprint(),
             })
@@ -2181,7 +2183,7 @@ impl<S: Append> Catalog<S> {
         } = self
             .allocate_system_ids(BUILTINS::types().collect(), |typ| {
                 persisted_builtin_ids
-                    .get(&(typ.schema.to_string(), typ.name.to_string()))
+                    .get(&(typ.schema.to_string(), typ.name.to_string(), "item".to_string()))
                     .cloned()
             })
             .await?;
@@ -2238,6 +2240,7 @@ impl<S: Append> Catalog<S> {
             .map(|(typ, id)| SystemObjectMapping {
                 schema_name: typ.schema.to_string(),
                 object_name: typ.name.to_string(),
+                object_type:  "item".to_string(),
                 id: *id,
                 fingerprint: typ.fingerprint(),
             })
@@ -2362,11 +2365,13 @@ impl<S: Append> Catalog<S> {
                     .name
                     .schema
                     .as_str();
+                let object_type = if entry.item.typ() == CatalogItemType::Func { "function" } else {"item"};
                 migration_metadata.migrated_system_table_mappings.insert(
                     id,
                     SystemObjectMapping {
                         schema_name: schema_name.to_string(),
                         object_name: entry.name.item.clone(),
+                        object_type: object_type.to_string(),
                         id: new_id,
                         fingerprint: *fingerprint,
                     },

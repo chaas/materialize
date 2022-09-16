@@ -71,6 +71,17 @@ impl<T: TypeReference> Builtin<T> {
             Builtin::StorageCollection(coll) => coll.schema,
         }
     }
+
+    pub fn object_type(&self) -> &'static str {
+        match self {
+            Builtin::Log(log) => "item",
+            Builtin::Table(table) => "item",
+            Builtin::View(view) => "item",
+            Builtin::Type(typ) => "item",
+            Builtin::Func(func) => "function",
+            Builtin::StorageCollection(coll) => "item",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Hash, Serialize)]

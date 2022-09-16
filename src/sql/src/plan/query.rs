@@ -4273,6 +4273,10 @@ pub fn resolve_func(
         }
     }
 
+    // if(name == "data") {
+    //     return OK(UnaryFunc::CastTimestampTzToDate);
+    // }
+
     // Couldn't resolve function with this name, so generate verbose error
     // message.
     let cexprs = match args {
