@@ -211,6 +211,19 @@ impl From<SaslConfig> for KafkaSecurity {
     }
 }
 
+// #[derive(Arbitrary, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+// pub struct ConnectionKafkaBroker {
+//     pub address: String,
+//     pub aws_privatelink: Option<KafkaBrokerAwsPrivateLink>,
+// }
+
+// #[derive(Arbitrary, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+// pub struct KafkaBrokerAwsPrivateLink {
+//     pub connection: AwsPrivateLinkConnection,
+//     pub port: Option<u16>,
+// }
+
+
 #[derive(Arbitrary, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct KafkaConnection {
     pub brokers: Vec<String>,

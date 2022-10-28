@@ -637,6 +637,7 @@ impl_display_t!(CsrConnectionOption);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PostgresConnectionOptionName {
+    // AwsPrivatelink,
     Database,
     Host,
     Password,
@@ -652,6 +653,7 @@ pub enum PostgresConnectionOptionName {
 impl AstDisplay for PostgresConnectionOptionName {
     fn fmt<W: fmt::Write>(&self, f: &mut AstFormatter<W>) {
         f.write_str(match self {
+            // PostgresConnectionOptionName::AwsPrivatelink => "AWS PRIVATELINK",
             PostgresConnectionOptionName::Database => "DATABASE",
             PostgresConnectionOptionName::Host => "HOST",
             PostgresConnectionOptionName::Password => "PASSWORD",

@@ -1110,6 +1110,10 @@ impl<'a> Fold<Raw, Aug> for NameResolver<'a> {
                     .map(|r| self.fold_replica_definition(r))
                     .collect(),
             ),
+            ConnectionKafkaBroker { address, aws_privatelink } =>  ConnectionKafkaBroker {
+                address,
+                aws_privatelink: aws_privatelink.map(|pl| self.fold_kafka_broker_aws_private_link(pl)),
+            }
         }
     }
 }

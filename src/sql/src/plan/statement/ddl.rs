@@ -2677,6 +2677,7 @@ impl TryFrom<CsrConnectionOptionExtracted> for mz_storage::types::connections::C
 
 generate_extracted_config!(
     PostgresConnectionOption,
+    // (AwsPrivateLink, with_options::Object),
     (Database, String),
     (Host, String),
     (Password, with_options::Secret),

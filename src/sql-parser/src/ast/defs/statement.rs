@@ -430,6 +430,54 @@ impl AstDisplay for CreateSchemaStatement {
 }
 impl_display!(CreateSchemaStatement);
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum KafkaBrokerAwsPrivateLinkOptionName {
+    Port,
+}
+
+impl AstDisplay for KafkaBrokerAwsPrivateLinkOptionName {
+    fn fmt<W: fmt::Write>(&self, f: &mut AstFormatter<W>) {
+        match self {
+            Self::Port => f.write_str("PORT"),
+        }
+    }
+}
+impl_display!(KafkaBrokerAwsPrivateLinkOptionName);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct KafkaBrokerAwsPrivateLinkOption<T: AstInfo> {
+    pub name: KafkaBrokerAwsPrivateLinkOptionName,
+    pub value: Option<WithOptionValue<T>>,
+}
+
+impl<T: AstInfo> AstDisplay for KafkaBrokerAwsPrivateLinkOption<T> {
+    fn fmt<W: fmt::Write>(&self, f: &mut AstFormatter<W>) {
+        f.write_node(&self.name);
+        if let Some(value) = &self.value {
+            f.write_str(" ");
+            f.write_node(value);
+        }
+    }
+}
+impl_display_t!(KafkaBrokerAwsPrivateLinkOption);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct KafkaBrokerAwsPrivateLink<T: AstInfo> {
+    pub connection: T::ObjectName,
+    pub options: Vec<KafkaBrokerAwsPrivateLinkOption<T>>
+}
+
+impl<T: AstInfo> AstDisplay for KafkaBrokerAwsPrivateLink<T> {
+    fn fmt<W: fmt::Write>(&self, f: &mut AstFormatter<W>) {
+        f.write_str("USING AWS PRIVATELINK ");
+        f.write_node(&self.connection);
+        f.write_str(" (");
+            f.write_node(&display::comma_separated(&self.options));
+            f.write_str(")");
+    }
+}
+impl_display_t!(KafkaBrokerAwsPrivateLink);
+
 /// `CREATE CONNECTION`
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CreateConnectionStatement<T: AstInfo> {
@@ -2140,6 +2188,10 @@ pub enum WithOptionValue<T: AstInfo> {
     Sequence(Vec<WithOptionValue<T>>),
     // Special cases.
     ClusterReplicas(Vec<ReplicaDefinition<T>>),
+    ConnectionKafkaBroker {
+        address: String,
+        aws_privatelink: Option<KafkaBrokerAwsPrivateLink<T>>
+    }
 }
 
 impl<T: AstInfo> AstDisplay for WithOptionValue<T> {
@@ -2162,6 +2214,13 @@ impl<T: AstInfo> AstDisplay for WithOptionValue<T> {
                 f.write_str("(");
                 f.write_node(&display::comma_separated(replicas));
                 f.write_str(")");
+            }
+            WithOptionValue::ConnectionKafkaBroker { address, aws_privatelink } => {
+                f.write_str(address);
+                if let Some(ref aws_privatelink) = &aws_privatelink {
+                    f.write_str(" ");
+                    f.write_node(aws_privatelink);
+                }
             }
         }
     }

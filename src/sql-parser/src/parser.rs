@@ -2011,7 +2011,12 @@ impl<'a> Parser<'a> {
 
     fn parse_kafka_connection_option(&mut self) -> Result<KafkaConnectionOption<Raw>, ParserError> {
         let name = match self.expect_one_of_keywords(&[BROKER, BROKERS, PROGRESS, SASL, SSL])? {
-            BROKER => KafkaConnectionOptionName::Broker,
+            BROKER => {
+                return Ok(KafkaConnectionOption {
+                    name: KafkaConnectionOptionName::Broker,
+                    value: self.parse_kafka_broker()?,
+                })
+            },
             BROKERS => KafkaConnectionOptionName::Brokers,
             PROGRESS => {
                 self.expect_keyword(TOPIC)?;
@@ -2039,6 +2044,45 @@ impl<'a> Parser<'a> {
         Ok(KafkaConnectionOption {
             name,
             value: self.parse_optional_option_value()?,
+        })
+    }
+
+    fn parse_kafka_broker(&mut self) -> Result<Option<WithOptionValue<Raw>>, ParserError>{
+        let address = self.parse_literal_string()?;
+
+        let aws_privatelink = if self.parse_keyword(USING) {
+            self.expect_keywords(&[AWS, PRIVATELINK])?;
+            let connection = self.parse_raw_name()?;
+            let options = if self.consume_token(&Token::LParen) {
+                let options = self.parse_comma_separated(Parser::parse_kafka_broker_aws_private_link_option)?;
+                self.expect_token(&Token::RParen)?;
+                options
+            } else {
+                vec![]
+            };
+            Some(KafkaBrokerAwsPrivateLink {
+                connection,
+                options
+            })
+        } else {
+            None
+        };
+
+        Ok(Some(WithOptionValue::ConnectionKafkaBroker { 
+            address,
+            aws_privatelink 
+        }))
+    }
+
+    fn parse_kafka_broker_aws_private_link_option(&mut self) -> Result<KafkaBrokerAwsPrivateLinkOption<Raw>, ParserError> {
+        let name = match self.expect_one_of_keywords(&[PORT])? {
+            PORT => KafkaBrokerAwsPrivateLinkOptionName::Port,
+            _ => unreachable!(),
+        };
+        let value = self.parse_optional_option_value()?;
+        Ok(KafkaBrokerAwsPrivateLinkOption {
+            name,
+            value
         })
     }
 
@@ -2192,6 +2236,10 @@ impl<'a> Parser<'a> {
                 _ => unreachable!(),
             },
             USER | USERNAME => PostgresConnectionOptionName::User,
+            // AWS => {
+            //     self.expect_keyword(PRIVATELINK)?;
+            //     PostgresConnectionOptionName:: AwsPrivatelink
+            // }
             _ => unreachable!(),
         };
         Ok(PostgresConnectionOption {
@@ -2606,7 +2654,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_pg_connection_option(&mut self) -> Result<PgConfigOption<Raw>, ParserError> {
-        let name = match self.expect_one_of_keywords(&[DETAILS, PUBLICATION])? {
+        let name = match self.expect_one_of_keywords(&[DETAILS, PUBLICATION, AWS, PORT])? {
             DETAILS => PgConfigOptionName::Details,
             PUBLICATION => PgConfigOptionName::Publication,
             _ => unreachable!(),
