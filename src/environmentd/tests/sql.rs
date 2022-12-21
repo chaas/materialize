@@ -2099,3 +2099,39 @@ fn test_emit_timestamp_notice() {
         })
         .unwrap();
 }
+
+#[test]
+fn test_emit_tracing_notice() {
+    std::env::set_var("POSTGRES_URL", "postgresql://carahaas@localhost:5432/postgres");
+    //with_enable_tracing(true);
+    let config = util::Config::default().with_enable_tracing(true);
+    let server = util::start_server(config).unwrap();
+
+    let (tx, mut rx) = futures::channel::mpsc::unbounded();
+
+    let mut client = server
+        .pg_config()
+        .notice_callback(move |notice| {
+            tx.unbounded_send(notice).unwrap();
+        })
+        .connect(postgres::NoTls)
+        .unwrap(); 
+
+    client
+        .execute("SET emit_tracing_notice = true", &[])
+        .unwrap();
+    let row = client
+        .query_one("SELECT 1;", &[])
+        .unwrap();
+    println!("{:?}", row);
+
+    match rx.try_next() {
+        Ok(Some(msg)) => {
+            println!("in the match: {}", msg);
+        }
+        Ok(None) => panic!("unexpected channel close"),
+        Err(e) => panic!("cara err {e}"),
+    }
+
+    let tracing_re = Regex::new("trace id: (.*)").unwrap();
+}

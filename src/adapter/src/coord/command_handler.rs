@@ -242,13 +242,17 @@ impl<S: Append + 'static> Coordinator<S> {
         mut session: Session,
         tx: ClientTransmitter<ExecuteResponse>,
     ) {
+        println!("command_handler before if");
         if session.vars().emit_tracing_notice() {
+            println!("command_handler inside if");
             let span_context = tracing::Span::current()
                 .context()
                 .span()
                 .span_context()
                 .clone();
+            println!("span_context: {:?}", span_context);
             if span_context.is_valid() {
+                println!("command_handler issuing notice");
                 session.add_notice(AdapterNotice::QueryTrace {
                     trace_id: span_context.trace_id(),
                 });
