@@ -270,6 +270,7 @@ impl PlanError {
             Self::DuplicateSubsourceReference { .. } => {
                 Some("Specify target table names using FOR TABLES (foo AS bar), or limit the upstream tables using FOR SCHEMAS (foo)".into())
             }
+            Self::Parser(e) => e.hint(),
             _ => None,
         }
     }

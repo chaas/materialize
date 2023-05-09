@@ -1895,7 +1895,9 @@ fn parse_sql(sql: &str) -> Result<Vec<Statement<Raw>>, ErrorResponse> {
             // Convert our 0-based byte position to pgwire's 1-based character
             // position.
             let pos = sql[..e.pos].chars().count() + 1;
-            ErrorResponse::error(SqlState::SYNTAX_ERROR, e.message).with_position(pos)
+            ErrorResponse::error(SqlState::SYNTAX_ERROR, e.message)
+                .with_hint(e.hint)
+                .with_position(pos)
         }),
         Err(e) => Err(ErrorResponse::error(SqlState::PROGRAM_LIMIT_EXCEEDED, e)),
     }

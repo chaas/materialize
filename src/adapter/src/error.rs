@@ -331,6 +331,7 @@ impl AdapterError {
                  statement_timeout = '60s'`."
                     .into(),
             ),
+            AdapterError::ParseError(e) => e.hint(),
             AdapterError::PlanError(e) => e.hint(),
             AdapterError::VarError(e) => e.hint(),
             AdapterError::UnallowedOnCluster { .. } => Some(

@@ -461,6 +461,11 @@ impl ErrorResponse {
         self.position = Some(position);
         self
     }
+
+    pub fn with_hint(mut self, hint: Option<String>) -> ErrorResponse {
+        self.hint = hint;
+        self
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

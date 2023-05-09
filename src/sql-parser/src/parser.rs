@@ -156,6 +156,8 @@ enum IsLateral {
 pub struct ParserError {
     /// The error message.
     pub message: String,
+    // The error message hint.
+    pub hint: Option<String>,
     /// The byte position with which the error is associated.
     pub pos: usize,
 }
@@ -170,13 +172,13 @@ impl Error for ParserError {}
 
 impl From<RecursionLimitError> for ParserError {
     fn from(_: RecursionLimitError) -> ParserError {
-        ParserError {
-            pos: 0,
-            message: format!(
+        ParserError::new(
+            0,
+            format!(
                 "statement exceeds nested expression limit of {}",
                 RECURSION_LIMIT
             ),
-        }
+        )
     }
 }
 
@@ -189,7 +191,20 @@ impl ParserError {
         ParserError {
             pos,
             message: message.into(),
+            hint: None,
         }
+    }
+
+    pub(crate) fn with_hint<S>(mut self, hint: S) -> ParserError
+    where
+        S: Into<String>,
+    {
+        self.hint = Some(hint.into());
+        self
+    }
+
+    pub fn hint(&self) -> Option<String> {
+        self.hint.clone()
     }
 }
 
@@ -241,7 +256,7 @@ impl<'a> Parser<'a> {
     }
 
     fn error(&self, pos: usize, message: String) -> ParserError {
-        ParserError { pos, message }
+        ParserError::new(pos, message)
     }
 
     fn parse_statements(&mut self) -> Result<Vec<Statement<Raw>>, ParserError> {
@@ -4996,6 +5011,14 @@ impl<'a> Parser<'a> {
         }
         if normal {
             let to = self.parse_set_variable_to()?;
+            if variable.as_str().parse() == Ok(SCHEMA) {
+                return Err(ParserError::new(
+                    self.index,
+                    "unrecognized configuration parameter \"schema\""
+                )
+                .with_hint("To change schema, use `SET search_path = <name>` or \
+                    `SET schema <name>` (without the equals). `SET schema` is an alias for `SET search_path =`."));
+            }
             Ok(Statement::SetVariable(SetVariableStatement {
                 local: modifier == Some(LOCAL),
                 variable,
