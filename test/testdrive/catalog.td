@@ -9,6 +9,7 @@
 
 $ set-arg-default replicas=1
 $ set-arg-default single-replica-cluster=quickstart
+$ set-regex match=(s|u)\d+ replacement=<GID>
 
 # Testdrive accounts for multi-replica runs by creating additional clusters,
 # which affect the output of this test––instead just don't run this test.
@@ -39,21 +40,21 @@ Indexes:
 
 # What schemas do we have by default?
 > SHOW SCHEMAS FROM materialize
-public
-information_schema
-mz_catalog
-mz_unsafe
-mz_internal
-pg_catalog
+public              <GID>
+information_schema  <GID>
+mz_catalog          <GID>
+mz_unsafe           <GID>
+mz_internal         <GID>
+pg_catalog          <GID>
 > SHOW SCHEMAS
-name
-------------------
-information_schema
-public
-mz_catalog
-mz_unsafe
-mz_internal
-pg_catalog
+name               id
+-------------------------
+information_schema <GID>
+public             <GID>
+mz_catalog         <GID>
+mz_unsafe          <GID>
+mz_internal        <GID>
+pg_catalog         <GID>
 $ psql-execute command=\dn
 \     List of schemas
     Name     |   Owner
@@ -81,21 +82,21 @@ $ psql-execute command="\dn mz_*"
 
 # What objects do we have by default?
 > SHOW OBJECTS
-name    type
--------------
+name    id    type
+-------------------
 
 # Creating a schema should be reflected in the output of SHOW SCHEMAS.
 > CREATE SCHEMA s
 > SHOW SCHEMAS
-name
-------------------
-public
-s
-information_schema
-mz_catalog
-mz_internal
-mz_unsafe
-pg_catalog
+name                id
+--------------------------
+public              <GID>
+s                   <GID>
+information_schema  <GID>
+mz_catalog          <GID>
+mz_internal         <GID>
+mz_unsafe           <GID>
+pg_catalog          <GID>
 
 
 # Creating a schema with a name that already exists should fail.
@@ -116,9 +117,9 @@ contains:schema 'materialize.s' cannot be dropped without CASCADE while it conta
 
 # What databases do we have by default?
 > SHOW DATABASES
-name
-------------
-materialize
+name          id
+--------------------
+materialize   <GID>
 
 > SELECT name FROM mz_databases
 name
@@ -128,10 +129,10 @@ materialize
 # Creating a database should be reflected in the output of SHOW DATABASES.
 > CREATE DATABASE d
 > SHOW DATABASES
-name
------------
-d
-materialize
+name          id
+--------------------
+d             <GID>
+materialize   <GID>
 
 # ...and also in `\l`
 $ psql-execute command="\l"
@@ -160,11 +161,11 @@ d
 # WHERE clause.
 > SHOW DATABASES LIKE 'foo'
 > SHOW DATABASES LIKE 'd'
-d
+d   <GID>
 > SHOW DATABASES LIKE 'mat%'
-materialize
+materialize   <GID>
 > SHOW DATABASES WHERE (SELECT name = name)
-materialize
+materialize   <GID>
 d
 > SHOW DATABASES WHERE (name = (SELECT min(name) FROM mz_databases))
 d
