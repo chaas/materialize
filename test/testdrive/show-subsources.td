@@ -15,15 +15,16 @@ $ set-arg-default single-replica-cluster=quickstart
   FROM LOAD GENERATOR AUCTION FOR ALL TABLES
 
 # By default, `SHOW SUBSOURCES` should show all sources in the schema.
+$ set-regex match=u\d+ replacement=<GID>
 > SHOW SUBSOURCES
-name           type
--------------------------
-accounts       subsource
-auctions       subsource
-bids           subsource
-lga_progress   progress
-organizations  subsource
-users          subsource
+name           id     type
+--------------------------------
+accounts       <GID>  subsource
+auctions       <GID>  subsource
+bids           <GID>  subsource
+lga_progress   <GID>  progress
+organizations  <GID>  subsource
+users          <GID>  subsource
 
 # Verify the schema filtering by creating two new sources, one in the current
 # schema and one in another schema. Verify that `SHOW SUBSOURCES` shows the
@@ -37,45 +38,45 @@ users          subsource
   FROM LOAD GENERATOR COUNTER
 
 > SHOW SUBSOURCES
-name           type
--------------------------
-accounts       subsource
-auctions       subsource
-bids           subsource
-lga_progress   progress
-lgc_progress   progress
-organizations  subsource
-users          subsource
+name           id     type
+--------------------------------
+accounts       <GID>  subsource
+auctions       <GID>  subsource
+bids           <GID>  subsource
+lga_progress   <GID>  progress
+lgc_progress   <GID>  progress
+organizations  <GID>  subsource
+users          <GID>  subsource
 
 > SET SCHEMA = other
 > SHOW SUBSOURCES
-name           type
--------------------------
-lgo_progress   progress
+name           id     type
+--------------------------------
+lgo_progress   <GID>  rogress
 
 # Verify that you can override the current schema with `FROM ...`.
 > SHOW SUBSOURCES FROM public
-name           type
--------------------------
-accounts       subsource
-auctions       subsource
-bids           subsource
-lga_progress   progress
-lgc_progress   progress
-organizations  subsource
-users          subsource
+name           id     type
+--------------------------------
+accounts       <GID>  subsource
+auctions       <GID>  subsource
+bids           <GID>  subsource
+lga_progress   <GID>  progress
+lgc_progress   <GID>  progress
+organizations  <GID>  subsource
+users          <GID>  subsource
 
 # Verify that `ON ...` filters to the subsources of the named source.
 > SHOW SUBSOURCES ON lgo
-name           type
--------------------------
-lgo_progress   progress
+name           id     type
+--------------------------------
+lgo_progress   <GID>  progress
 
 # Verify again with a cross-schema reference.
 > SHOW SUBSOURCES ON public.lgc
-name           type
--------------------------
-lgc_progress   progress
+name           id     type
+--------------------------------
+lgc_progress   <GID>  progress
 
 # Verify that you cannot combine a schema filter with a source filter.
 ! SHOW SUBSOURCES FROM public ON lga

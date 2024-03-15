@@ -55,7 +55,7 @@ ALTER SYSTEM SET enable_rbac_checks TO true
 
 > SET CLUSTER TO mz_introspection
 
-> SHOW MATERIALIZED VIEWS
+> SELECT name, cluster FROM (SHOW MATERIALIZED VIEWS)
 mv quickstart
 
 #! CREATE MATERIALIZED VIEW mv1 AS SELECT MIN(1)
@@ -89,7 +89,7 @@ INSERT INTO temp SELECT * FROM temp
 # Ready is false in the process orchestrator, but true in K8s
 $ set-regex match=true|false replacement=<TRUE_OR_FALSE>
 
-> SHOW CLUSTER REPLICAS WHERE cluster = 'mz_system'
+> SELECT cluster, replica, size, ready FROM (SHOW CLUSTER REPLICAS WHERE cluster = 'mz_system')
 mz_system r1 1 <TRUE_OR_FALSE>
 
 $ postgres-execute connection=mz_system
@@ -100,5 +100,5 @@ DROP CLUSTER REPLICA mz_system.r1
 $ postgres-execute connection=mz_system
 CREATE CLUSTER REPLICA mz_system.r1 SIZE '${arg.default-replica-size}';
 
-> SHOW CLUSTER REPLICAS WHERE cluster = 'mz_system'
+> SELECT cluster, replica, size, ready FROM (SSHOW CLUSTER REPLICAS WHERE cluster = 'mz_system')
 mz_system r1 ${arg.default-replica-size} <TRUE_OR_FALSE>

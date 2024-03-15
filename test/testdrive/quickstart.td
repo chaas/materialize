@@ -20,7 +20,7 @@
   (TICK INTERVAL '0.05s')
   FOR ALL TABLES
 
-> SHOW SOURCES
+> SELECT name, type, size, cluster FROM SHOW SOURCES
 name                   type           size                         cluster
 --------------------------------------------------------------------------
 accounts               subsource      <null>                       <null>

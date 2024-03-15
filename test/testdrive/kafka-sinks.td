@@ -60,8 +60,8 @@ goofus,gallant
 contains:Expected one of SNAPSHOT
 
 > SHOW SINKS
-name               type   size  cluster
----------------------------------------
+name               id   type   size  cluster
+---------------------------------------------
 
 # # We should refuse to create a sink with an invalid schema registry URL.
 #
@@ -106,8 +106,8 @@ name               type   size  cluster
 # contains:v2 is a view, which cannot be exported as a sink
 #
 # > SHOW SINKS
-# name               type   size  cluster
-# ---------------------------------------
+# name               id   type   size  cluster
+# ---------------------------------------------
 
 # N.B. it is important to test sinks that depend on sources directly vs. sinks
 # that depend on views, as the code paths are different.
@@ -136,8 +136,8 @@ name               type   size  cluster
   FORMAT AVRO USING CONFLUENT SCHEMA REGISTRY CONNECTION csr_conn
   ENVELOPE DEBEZIUM
 
-> SHOW SINKS
-name               type   size  cluster
+> SELECT name, type, size, cluster FROM SHOW SINKS
+name             type   size  cluster
 ---------------------------------------
 snk1             kafka  ${arg.default-storage-size}  snk1_cluster
 snk2             kafka  ${arg.default-storage-size}  snk2_cluster
@@ -302,7 +302,7 @@ contains:Expected one of SNAPSHOT, found SIZE
 true
 
 # Check that SHOW SINKS shows the size correctly
-> SHOW SINKS
+> SELECT name, type, size, cluster FROM SHOW SINKS
 name               type   size  cluster
 ---------------------------------------
 cluster_c_sink        kafka  4                            c

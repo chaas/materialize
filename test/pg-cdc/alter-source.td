@@ -11,6 +11,8 @@
 # accepts connections from specific users. You will have to update
 # pg_hba.conf if you modify the existing user names or add new ones.
 
+$ set-regex match=u\d+ replacement=<GID>
+
 > CREATE SECRET pgpass AS 'postgres'
 > CREATE CONNECTION pg TO POSTGRES (
     HOST postgres,
@@ -120,14 +122,14 @@ INSERT INTO table_g VALUES (2, 'two');
   FOR SCHEMAS (public);
 
 > SHOW SUBSOURCES ON mz_source
-mz_source_progress    progress
-table_a               subsource
-table_b               subsource
-table_c               subsource
-table_d               subsource
-table_e               subsource
-table_f               subsource
-table_g               subsource
+mz_source_progress    <GID> progress
+table_a               <GID> subsource
+table_b               <GID> subsource
+table_c               <GID> subsource
+table_d               <GID> subsource
+table_e               <GID> subsource
+table_f               <GID> subsource
+table_g               <GID> subsource
 
 # Show all tablestodo this should be splittable
 > SELECT regexp_match(create_sql, 'FOR TABLES \((.+?)\) EXPOSE')[1] FROM (SHOW CREATE SOURCE mz_source);
@@ -193,13 +195,13 @@ contains:unknown catalog item 'dne'
 2 two
 
 > SHOW SUBSOURCES ON mz_source
-mz_source_progress    progress
-table_b               subsource
-table_c               subsource
-table_d               subsource
-table_e               subsource
-table_f               subsource
-table_g               subsource
+mz_source_progress    <GID> progress
+table_b               <GID> subsource
+table_c               <GID> subsource
+table_d               <GID> subsource
+table_e               <GID> subsource
+table_f               <GID> subsource
+table_g               <GID> subsource
 
 ! SELECT * FROM table_a;
 contains: unknown catalog item 'table_a'
@@ -235,8 +237,8 @@ INSERT INTO table_e VALUES (3, 'three');
 4
 
 > SHOW MATERIALIZED VIEWS
-mv_e quickstart
-mv_f quickstart
+mv_e <GID> quickstart
+mv_f <GID> quickstart
 
 # RESTRICT works
 ! ALTER SOURCE mz_source DROP SUBSOURCE IF EXISTS table_e;
@@ -256,8 +258,8 @@ contains:cannot drop source "table_e": still depended upon by materialized view 
 <null>
 
 > SHOW SUBSOURCES ON mz_source
-mz_source_progress    progress
-table_g               subsource
+mz_source_progress    <GID> progress
+table_g               <GID> subsource
 
 > SHOW MATERIALIZED VIEWS
 
@@ -307,11 +309,11 @@ INSERT INTO table_h VALUES (2, 'two');
 2 two
 
 > SHOW SUBSOURCES ON mz_source
-mz_source_progress progress
-table_a            subsource
-table_g            subsource
-table_h            subsource
-tb                 subsource
+mz_source_progress <GID> progress
+table_a            <GID> subsource
+table_g            <GID> subsource
+table_h            <GID> subsource
+tb                 <GID> subsource
 
 #
 # Complex subsource operations

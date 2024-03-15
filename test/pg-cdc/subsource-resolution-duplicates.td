@@ -53,7 +53,7 @@ detail: subsources referencing table: x, y
   FROM POSTGRES CONNECTION pg (PUBLICATION 'mz_source')
   FOR SCHEMAS (other);
 
-> SHOW sources
+> SELECT name, type, size, cluster FROM SHOW sources
  mz_source          postgres  ${arg.default-replica-size} quickstart
  mz_source_progress progress  <null> <null>
  t                  subsource <null> <null>

@@ -9,6 +9,7 @@
 
 $ set-arg-default default-replica-size=1
 $ set-arg-default single-replica-cluster=quickstart
+$ set-regex match=(u|s)\d+ replacement=<GID>
 
 # Test creating and dropping various views and sources that depend upon
 # on another, and indices on those views and sources.
@@ -46,14 +47,14 @@ $ kafka-create-topic topic=data
   SELECT b, sum(a) FROM data GROUP BY b
 
 > SHOW VIEWS
-name
----------
-data_view
+name      id
+----------------
+data_view <GID>
 
 > SHOW MATERIALIZED VIEWS
-name    cluster
----------------
-test1   quickstart
+name    id      cluster
+---------------------------
+test1   <GID>   quickstart
 
 > SELECT * FROM test1
 b  sum
@@ -78,7 +79,7 @@ b     false   bigint
 sum   false   numeric
 
 > SHOW VIEWS LIKE '%data%'
-data_view
+data_view <GID>
 
 > SHOW CREATE MATERIALIZED VIEW test1
 name                      create_sql
@@ -344,12 +345,12 @@ a  b
 1  2
 
 > SHOW SOURCES
-name     type    size    cluster
---------------------------------
-data              kafka     ${arg.default-replica-size}   ${arg.single-replica-cluster}
-data_progress     progress  <null>                        <null>
-mat_data          kafka     ${arg.default-replica-size}   ${arg.single-replica-cluster}
-mat_data_progress progress  <null>                        <null>
+name              id      type    size    cluster
+--------------------------------------------------
+data              <GID>   kafka     ${arg.default-replica-size}   ${arg.single-replica-cluster}
+data_progress     <GID>   progress  <null>                        <null>
+mat_data          <GID>   kafka     ${arg.default-replica-size}   ${arg.single-replica-cluster}
+mat_data_progress <GID>   progress  <null>                        <null>
 
 # If there exists another index, dropping the primary index will not #
 # unmaterialize the source. This also tests creating a default index when the

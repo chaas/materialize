@@ -9,7 +9,10 @@
 
 $ set-arg-default replicas=1
 $ set-arg-default single-replica-cluster=quickstart
-$ set-regex match=(s|u)\d+ replacement=<GID>
+
+# Ideally we'd have separate replacements for user and system ids,
+# but testdrive only supports a single set-regex statement.
+$ set-regex match=(u|s)\d+ replacement=<GID>
 
 # Testdrive accounts for multi-replica runs by creating additional clusters,
 # which affect the output of this test––instead just don't run this test.
@@ -166,9 +169,9 @@ d   <GID>
 materialize   <GID>
 > SHOW DATABASES WHERE (SELECT name = name)
 materialize   <GID>
-d
+d             <GID>
 > SHOW DATABASES WHERE (name = (SELECT min(name) FROM mz_databases))
-d
+d   <GID>
 ! SHOW DATABASES WHERE 7
 contains:WHERE clause must have type boolean, not type integer
 
@@ -178,68 +181,70 @@ contains:database 'd' already exists
 
 # The new database should have a default public schema.
 > SHOW SCHEMAS FROM d
-name
-------------------
-public
-information_schema
-mz_catalog
-mz_internal
-mz_unsafe
-pg_catalog
+name                id
+--------------------------
+public              <GID>
+information_schema  <GID>
+mz_catalog          <GID>
+mz_internal         <GID>
+mz_unsafe           <GID>
+pg_catalog          <GID>
 
 # New schemas in the database should appear in the output of SHOW SCHEMAS FROM.
 > CREATE SCHEMA d.s
 > SHOW SCHEMAS FROM d
-name
--------------------
-public
-s
-information_schema
-mz_catalog
-mz_internal
-mz_unsafe
-pg_catalog
+name                id
+--------------------------
+public              <GID>
+s                   <GID>
+information_schema  <GID>
+mz_catalog          <GID>
+mz_internal         <GID>
+mz_unsafe           <GID>
+pg_catalog          <GID>
 
 # SHOW SCHEMAS should filter its output based on the provided LIKE or WHERE
 # clause.
 > SHOW SCHEMAS LIKE 'pub%'
-public
+public    <GID>
 > SHOW SCHEMAS LIKE 'private'
 > SHOW SCHEMAS WHERE name = 'public'
-public
+public    <GID>
 
 # New views in the database should work.
 > CREATE VIEW d.public.v1 AS SELECT 1
 > SHOW VIEWS FROM d.public
-name
-----
-v1
+name  id
+------------
+v1    <GID>
 
 # Setting the session database should update name resolution appropriately.
 > SET DATABASE = d
 > SHOW DATABASE
 d
 > SHOW SCHEMAS
-public
-s
-information_schema
-mz_catalog
-mz_internal
-mz_unsafe
-pg_catalog
+name                id
+--------------------------
+public              <GID>
+s                   <GID>
+information_schema  <GID>
+mz_catalog          <GID>
+mz_internal         <GID>
+mz_unsafe           <GID>
+pg_catalog          <GID>
 > CREATE VIEW v2 AS SELECT 2
 > SHOW VIEWS
-v1
-v2
+v1  <GID>
+v2  <GID>
 > SELECT * FROM v1 UNION ALL SELECT * FROM v2
 1
 2
 
 > SHOW OBJECTS
-name    type
--------------
-v1      view
-v2      view
+name    id      type
+----------------------
+v1      <GID>   view    
+v2      <GID>   view    
 
 # Test minimizing name qualification
 
@@ -275,12 +280,12 @@ public.bool
 contains:Expected one of TABLE or VIEW or MATERIALIZED or SOURCE or SINK or INDEX or TYPE or ROLE or USER or CLUSTER or SECRET or CONNECTION or DATABASE or SCHEMA or FUNCTION, found identifier
 
 > SHOW OBJECTS
-name        type
------------------
-bool        type
-int_list    type
-v1          view
-v2          view
+name      id      type
+----------------------
+bool      <GID>   type
+int_list  <GID>   type
+v1        <GID>   view    
+v2        <GID>   view 
 
 # Create one of every mz_object type
 $ set schema={
@@ -318,20 +323,20 @@ $ kafka-ingest format=avro topic=data schema=${schema} timestamp=1
   ENVELOPE DEBEZIUM;
 
 > SHOW OBJECTS
-name        type
-----------------
-bool        type
-csr_conn    connection
-int_list    type
-v1          view
-v2          view
-tbl         table
-pass_secret secret
-kafka_conn  connection
-mv          materialized-view
-source_data source
-source_data_progress source
-snk         sink
+name        id    type
+-------------------------------------
+bool        <GID> type
+csr_conn    <GID> connection
+int_list    <GID> type
+v1          <GID> view
+v2          <GID> view
+tbl         <GID> table
+pass_secret <GID> secret
+kafka_conn  <GID> connection
+mv          <GID> materialized-view
+source_data <GID> source
+source_data_progress <GID> source
+snk         <GID> sink
 
 > SELECT DISTINCT(TYPE) FROM mz_objects
 type
@@ -348,18 +353,18 @@ function
 secret
 
 > SELECT * FROM (SHOW OBJECTS) ORDER BY name DESC
-bool        type
-csr_conn    connection
-int_list    type
-kafka_conn  connection
-mv          materialized-view
-pass_secret secret
-snk         sink
-source_data source
-source_data_progress source
-tbl         table
-v1          view
-v2          view
+bool        <GID>   type
+csr_conn    <GID>   connection
+int_list    <GID>   type
+kafka_conn  <GID>   connection
+mv          <GID>   materialized-view
+pass_secret <GID>   secret
+snk         <GID>   sink
+source_data <GID>   source
+source_data_progress <GID>   source
+tbl         <GID>   table
+v1          <GID>   view
+v2          <GID>   view
 
 > SELECT create_sql FROM (SHOW CREATE TABLE tbl)
 "CREATE TABLE \"d\".\"public\".\"tbl\" (\"a\" \"pg_catalog\".\"int4\", \"b\" \"pg_catalog\".\"text\")"
@@ -384,9 +389,9 @@ contains:database 'd' cannot be dropped with RESTRICT while it contains schemas
 > DROP DATABASE d
 # SHOW DATABASES should work, even if the current database has been dropped.
 > SHOW DATABASES
-name
------------
-materialize
+name        id
+-----------------
+materialize <GID>
 
 > SELECT name FROM mz_databases
 name
@@ -461,7 +466,7 @@ contains:unknown database 'noexist_db'
 > CREATE DATABASE d2;
 > CREATE VIEW d2.public.t AS SELECT * FROM d1.public.t;
 > DROP DATABASE d1;
-> SHOW DATABASES
+> SELECT name FROM SHOW DATABASES
 name
 -----------
 d
@@ -475,224 +480,224 @@ d
 d2
 
 > SHOW VIEWS FROM d2.public;
- name
------
+ name   id
+-----------
 
 # Check default sources, tables, and views in mz_catalog.
 
 > SHOW SOURCES FROM mz_catalog
-name  type  size  cluster
--------------------------
+name  id  type  size  cluster
+------------------------------
 
 > SHOW TABLES FROM mz_catalog
-name
------------------------------
-mz_array_types
-mz_audit_events
-mz_aws_privatelink_connections
-mz_base_types
-mz_clusters
-mz_cluster_replicas
-mz_columns
-mz_connections
-mz_databases
-mz_default_privileges
-mz_egress_ips
-mz_functions
-mz_index_columns
-mz_indexes
-mz_kafka_connections
-mz_kafka_sinks
-mz_list_types
-mz_map_types
-mz_materialized_views
-mz_operators
-mz_pseudo_types
-mz_roles
-mz_role_members
-mz_schemas
-mz_secrets
-mz_sinks
-mz_sources
-mz_ssh_tunnel_connections
-mz_system_privileges
-mz_tables
-mz_types
-mz_views
+name                            id
+-------------------------------------
+mz_array_types	                <GID>
+mz_audit_events	                <GID>
+mz_aws_privatelink_connections	<GID>
+mz_base_types	                  <GID>
+mz_clusters	                    <GID>
+mz_cluster_replicas		          <GID>
+mz_columns		                  <GID>
+mz_connections		              <GID>
+mz_databases	                 	<GID>
+mz_default_privileges	         	<GID>
+mz_egress_ips	   	     	       	<GID>
+mz_functions		     	  	      <GID>
+mz_index_columns		     	      <GID>
+mz_indexes                     	<GID>
+mz_kafka_connections	  	  	  <GID>
+mz_kafka_sinks	  	  	        <GID>
+mz_list_types	  	  	          <GID>
+mz_map_types	  	  	          <GID>
+mz_materialized_views	  	  	  <GID>
+mz_operators	  	  	          <GID>
+mz_pseudo_types	  	  	        <GID>
+mz_roles	  	  	    	    	  <GID>
+mz_role_members	  	  	        <GID>
+mz_schemas	  	  	    	  	  <GID>
+mz_secrets	  	  	            <GID>
+mz_sinks	  	  	              <GID>
+mz_sources	  	  	            <GID>
+mz_ssh_tunnel_connections	      <GID>
+mz_system_privileges	          <GID>
+mz_tables	  	  	    	  	    <GID>
+mz_types	  	  	    	  	    <GID>
+mz_views	  	  	    	  	    <GID>
 
 > SHOW VIEWS FROM mz_catalog
-name
+name                      id
 -----------------------------------
-mz_objects
-mz_relations
-mz_storage_usage
-mz_timezone_abbreviations
-mz_timezone_names
+mz_objects                <GID>
+mz_relations              <GID>
+mz_storage_usage          <GID>
+mz_timezone_abbreviations <GID>
+mz_timezone_names         <GID>
 
 # Check default sources, tables, and views in mz_internal.
 
 > SHOW SOURCES FROM mz_internal
-name                                           type   size  cluster
-------------------------------------------------------------------
-mz_active_peeks_per_worker                   log   <null>   <null>
-mz_arrangement_batcher_allocations_raw       log   <null>   <null>
-mz_arrangement_batcher_capacity_raw          log   <null>   <null>
-mz_arrangement_batcher_records_raw           log   <null>   <null>
-mz_arrangement_batcher_size_raw              log   <null>   <null>
-mz_arrangement_batches_raw                   log   <null>   <null>
-mz_arrangement_heap_allocations_raw          log   <null>   <null>
-mz_arrangement_heap_capacity_raw             log   <null>   <null>
-mz_arrangement_heap_size_raw                 log   <null>   <null>
-mz_arrangement_records_raw                   log   <null>   <null>
-mz_arrangement_sharing_raw                   log   <null>   <null>
-mz_aws_privatelink_connection_status_history source <null>  <null>
-mz_cluster_replica_frontiers                 source <null>  <null>
-mz_cluster_replica_heartbeats                source <null>  <null>
-mz_compute_delays_histogram_raw              log   <null>   <null>
-mz_compute_dependencies                      source <null>  <null>
-mz_compute_error_counts_raw                  log   <null>   <null>
-mz_compute_exports_per_worker                log   <null>   <null>
-mz_compute_frontiers_per_worker              log   <null>   <null>
-mz_compute_hydration_statuses                source <null>  <null>
-mz_compute_import_frontiers_per_worker       log   <null>   <null>
-mz_compute_operator_durations_histogram_raw  log   <null>   <null>
-mz_compute_operator_hydration_statuses_per_worker source <null> <null>
-mz_dataflow_addresses_per_worker             log   <null>   <null>
-mz_dataflow_channels_per_worker              log   <null>   <null>
-mz_dataflow_operator_reachability_raw        log   <null>   <null>
-mz_dataflow_operators_per_worker             log   <null>   <null>
-mz_dataflow_shutdown_durations_histogram_raw log   <null>   <null>
-mz_frontiers                                 source <null>  <null>
-mz_message_counts_received_raw               log   <null>   <null>
-mz_message_counts_sent_raw                   log   <null>   <null>
-mz_message_batch_counts_received_raw         log   <null>   <null>
-mz_message_batch_counts_sent_raw             log   <null>   <null>
-mz_peek_durations_histogram_raw              log   <null>   <null>
-mz_prepared_statement_history                source <null>  <null>
-mz_scheduling_elapsed_raw                    log   <null>   <null>
-mz_scheduling_parks_histogram_raw            log   <null>   <null>
-mz_session_history                           source <null>  <null>
-mz_sink_statistics_raw                       source <null>  <null>
-mz_sink_status_history                       source <null>  <null>
-mz_source_statistics_raw                     source <null>  <null>
-mz_source_status_history                     source <null>  <null>
-mz_sql_text                                  source <null>  <null>
-mz_statement_execution_history               source <null>  <null>
-mz_statement_lifecycle_history               source <null>  <null>
-mz_storage_shards                            source <null>  <null>
+name                                         id     type   size  cluster
+-------------------------------------------------------------------------
+mz_active_peeks_per_worker                   <GID>	log   <null>   <null>
+mz_arrangement_batcher_allocations_raw       <GID>	log   <null>   <null>
+mz_arrangement_batcher_capacity_raw          <GID>	log   <null>   <null>
+mz_arrangement_batcher_records_raw           <GID>	log   <null>   <null>
+mz_arrangement_batcher_size_raw              <GID>	log   <null>   <null>
+mz_arrangement_batches_raw                   <GID>	log   <null>   <null>
+mz_arrangement_heap_allocations_raw          <GID>	log   <null>   <null>
+mz_arrangement_heap_capacity_raw             <GID>	log   <null>   <null>
+mz_arrangement_heap_size_raw                 <GID>	log   <null>   <null>
+mz_arrangement_records_raw                   <GID>	log   <null>   <null>
+mz_arrangement_sharing_raw                   <GID>	log   <null>   <null>
+mz_aws_privatelink_connection_status_history <GID>	source <null>  <null>
+mz_cluster_replica_frontiers                 <GID>	source <null>  <null>
+mz_cluster_replica_heartbeats                <GID>	source <null>  <null>
+mz_compute_delays_histogram_raw              <GID>	log   <null>   <null>
+mz_compute_dependencies                      <GID>	source <null>  <null>
+mz_compute_error_counts_raw                  <GID>	log   <null>   <null>
+mz_compute_exports_per_worker                <GID>	log   <null>   <null>
+mz_compute_frontiers_per_worker              <GID>	log   <null>   <null>
+mz_compute_hydration_statuses                <GID>	source <null>  <null>
+mz_compute_import_frontiers_per_worker       <GID>	log   <null>   <null>
+mz_compute_operator_durations_histogram_raw  <GID>	log   <null>   <null>
+mz_compute_operator_hydration_statuses_per_worker <GID>	source <null> <null>
+mz_dataflow_addresses_per_worker             <GID>	log   <null>   <null>
+mz_dataflow_channels_per_worker              <GID>	log   <null>   <null>
+mz_dataflow_operator_reachability_raw        <GID>	log   <null>   <null>
+mz_dataflow_operators_per_worker             <GID>	log   <null>   <null>
+mz_dataflow_shutdown_durations_histogram_raw <GID>	log   <null>   <null>
+mz_frontiers                                 <GID>	source <null>  <null>
+mz_message_counts_received_raw               <GID>	log   <null>   <null>
+mz_message_counts_sent_raw                   <GID>	log   <null>   <null>
+mz_message_batch_counts_received_raw         <GID>	log   <null>   <null>
+mz_message_batch_counts_sent_raw             <GID>	log   <null>   <null>
+mz_peek_durations_histogram_raw              <GID>	log   <null>   <null>
+mz_prepared_statement_history                <GID>	source <null>  <null>
+mz_scheduling_elapsed_raw                    <GID>	log   <null>   <null>
+mz_scheduling_parks_histogram_raw            <GID>	log   <null>   <null>
+mz_session_history                           <GID>	source <null>  <null>
+mz_sink_statistics_raw                       <GID>	source <null>  <null>
+mz_sink_status_history                       <GID>	source <null>  <null>
+mz_source_statistics_raw                     <GID>	source <null>  <null>
+mz_source_status_history                     <GID>	source <null>  <null>
+mz_sql_text                                  <GID>	source <null>  <null>
+mz_statement_execution_history               <GID>	source <null>  <null>
+mz_statement_lifecycle_history               <GID>	source <null>  <null>
+mz_storage_shards                            <GID>	source <null>  <null>
 
 > SHOW TABLES FROM mz_internal
-name
-----
-mz_aggregates
-mz_aws_connections
-mz_cluster_replica_metrics
-mz_cluster_replica_sizes
-mz_cluster_replica_statuses
-mz_comments
-mz_internal_cluster_replicas
-mz_kafka_sources
-mz_object_dependencies
-mz_optimizer_notices
-mz_postgres_sources
-mz_sessions
-mz_storage_usage_by_shard
-mz_subscriptions
-mz_type_pg_metadata
-mz_webhook_sources
+name                          id
+------------------------------------
+mz_aggregates	                <GID>
+mz_aws_connections	          <GID>
+mz_cluster_replica_metrics	  <GID>
+mz_cluster_replica_sizes      <GID>
+mz_cluster_replica_statuses   <GID>
+mz_comments	                  <GID>
+mz_internal_cluster_replicas  <GID>
+mz_kafka_sources	            <GID>
+mz_object_dependencies	      <GID>
+mz_optimizer_notices	        <GID>
+mz_postgres_sources	          <GID>
+mz_sessions	                  <GID>
+mz_storage_usage_by_shard	    <GID>
+mz_subscriptions              <GID>
+mz_type_pg_metadata           <GID>
+mz_webhook_sources            <GID>
 
 > SHOW VIEWS FROM mz_internal
-name
--------------------------------------
-mz_active_peeks
-mz_activity_log_thinned
-mz_arrangement_sharing
-mz_arrangement_sharing_per_worker
-mz_arrangement_sizes
-mz_arrangement_sizes_per_worker
-mz_cluster_replica_history
-mz_cluster_replica_utilization
-mz_compute_delays_histogram
-mz_compute_delays_histogram_per_worker
-mz_compute_error_counts
-mz_compute_error_counts_per_worker
-mz_compute_exports
-mz_compute_frontiers
-mz_compute_import_frontiers
-mz_compute_operator_durations_histogram
-mz_compute_operator_durations_histogram_per_worker
-mz_compute_operator_hydration_statuses
-mz_dataflow_addresses
-mz_dataflow_arrangement_sizes
-mz_dataflow_channel_operators
-mz_dataflow_channel_operators_per_worker
-mz_dataflow_channels
-mz_dataflow_operator_dataflows
-mz_dataflow_operator_dataflows_per_worker
-mz_dataflow_operator_parents
-mz_dataflow_operator_parents_per_worker
-mz_dataflow_operator_reachability
-mz_dataflow_operator_reachability_per_worker
-mz_dataflow_operators
-mz_dataflow_shutdown_durations_histogram
-mz_dataflow_shutdown_durations_histogram_per_worker
-mz_dataflows
-mz_dataflows_per_worker
-mz_expected_group_size_advice
-mz_global_frontiers
-mz_hydration_statuses
-mz_materialization_lag
-mz_message_counts
-mz_message_counts_per_worker
-mz_notices
-mz_notices_redacted
-mz_object_fully_qualified_names
-mz_object_lifetimes
-mz_object_oid_alias
-mz_object_transitive_dependencies
-mz_peek_durations_histogram
-mz_peek_durations_histogram_per_worker
-mz_recent_activity_log
-mz_recent_activity_log_thinned
-mz_recent_activity_log_redacted
-mz_recent_sql_text
-mz_recent_sql_text_redacted
-mz_records_per_dataflow
-mz_records_per_dataflow_operator
-mz_records_per_dataflow_operator_per_worker
-mz_records_per_dataflow_per_worker
-mz_scheduling_elapsed
-mz_scheduling_elapsed_per_worker
-mz_scheduling_parks_histogram
-mz_scheduling_parks_histogram_per_worker
-mz_show_all_my_privileges
-mz_show_all_privileges
-mz_show_cluster_privileges
-mz_show_cluster_replicas
-mz_show_database_privileges
-mz_show_default_privileges
-mz_show_indexes
-mz_show_materialized_views
-mz_show_my_cluster_privileges
-mz_show_my_database_privileges
-mz_show_my_default_privileges
-mz_show_my_object_privileges
-mz_show_my_role_members
-mz_show_my_schema_privileges
-mz_show_my_system_privileges
-mz_show_object_privileges
-mz_show_role_members
-mz_show_schema_privileges
-mz_show_sinks
-mz_show_sources
-mz_show_system_privileges
-mz_sink_statistics
-mz_sink_statuses
-mz_source_statistics
-mz_source_statuses
-mz_sql_text_redacted
-mz_aws_privatelink_connection_statuses
-mz_statement_execution_history_redacted
+name                                                id
+----------------------------------------------------------
+mz_active_peeks                                     <GID>
+mz_activity_log_thinned                             <GID>
+mz_arrangement_sharing                              <GID>
+mz_arrangement_sharing_per_worker                   <GID>
+mz_arrangement_sizes                                <GID>
+mz_arrangement_sizes_per_worker                     <GID>
+mz_cluster_replica_history                          <GID>
+mz_cluster_replica_utilization                      <GID>
+mz_compute_delays_histogram                         <GID>
+mz_compute_delays_histogram_per_worker              <GID>
+mz_compute_error_counts                             <GID>
+mz_compute_error_counts_per_worker                  <GID>
+mz_compute_exports                                  <GID>
+mz_compute_frontiers                                <GID>
+mz_compute_import_frontiers                         <GID>
+mz_compute_operator_durations_histogram             <GID>
+mz_compute_operator_durations_histogram_per_worker  <GID>
+mz_compute_operator_hydration_statuses              <GID>
+mz_dataflow_addresses                               <GID>
+mz_dataflow_arrangement_sizes                       <GID>
+mz_dataflow_channel_operators                       <GID>
+mz_dataflow_channel_operators_per_worker            <GID>
+mz_dataflow_channels                                <GID>
+mz_dataflow_operator_dataflows                      <GID>
+mz_dataflow_operator_dataflows_per_worker           <GID>
+mz_dataflow_operator_parents                        <GID>
+mz_dataflow_operator_parents_per_worker             <GID>
+mz_dataflow_operator_reachability                   <GID>
+mz_dataflow_operator_reachability_per_worker        <GID>
+mz_dataflow_operators                               <GID>
+mz_dataflow_shutdown_durations_histogram            <GID>
+mz_dataflow_shutdown_durations_histogram_per_worker <GID>
+mz_dataflows                                        <GID>
+mz_dataflows_per_worker                             <GID>
+mz_expected_group_size_advice                       <GID>
+mz_global_frontiers                                 <GID>
+mz_hydration_statuses                               <GID>
+mz_materialization_lag                              <GID>
+mz_message_counts                                   <GID>
+mz_message_counts_per_worker                        <GID>
+mz_notices                                          <GID>
+mz_notices_redacted                                 <GID>
+mz_object_fully_qualified_names                     <GID>
+mz_object_lifetimes                                 <GID>
+mz_object_oid_alias                                 <GID>
+mz_object_transitive_dependencies                   <GID>
+mz_peek_durations_histogram                         <GID>
+mz_peek_durations_histogram_per_worker              <GID>
+mz_recent_activity_log                              <GID>
+mz_recent_activity_log_thinned                      <GID>
+mz_recent_activity_log_redacted                     <GID>
+mz_recent_sql_text                                  <GID>
+mz_recent_sql_text_redacted                         <GID>
+mz_records_per_dataflow                             <GID>
+mz_records_per_dataflow_operator                    <GID>
+mz_records_per_dataflow_operator_per_worker         <GID>
+mz_records_per_dataflow_per_worker                  <GID>
+mz_scheduling_elapsed                               <GID>
+mz_scheduling_elapsed_per_worker                    <GID>
+mz_scheduling_parks_histogram                       <GID>
+mz_scheduling_parks_histogram_per_worker            <GID>
+mz_show_all_my_privileges                           <GID>
+mz_show_all_privileges                              <GID>
+mz_show_cluster_privileges                          <GID>
+mz_show_cluster_replicas                            <GID>
+mz_show_database_privileges                         <GID>
+mz_show_default_privileges                          <GID>
+mz_show_indexes                                     <GID>
+mz_show_materialized_views                          <GID>
+mz_show_my_cluster_privileges                       <GID>
+mz_show_my_database_privileges                      <GID>
+mz_show_my_default_privileges                       <GID>
+mz_show_my_object_privileges                        <GID>
+mz_show_my_role_members                             <GID>
+mz_show_my_schema_privileges                        <GID>
+mz_show_my_system_privileges                        <GID>
+mz_show_object_privileges                           <GID>
+mz_show_role_members                                <GID>
+mz_show_schema_privileges                           <GID>
+mz_show_sinks                                       <GID>
+mz_show_sources                                     <GID>
+mz_show_system_privileges                           <GID>
+mz_sink_statistics                                  <GID>
+mz_sink_statuses                                    <GID>
+mz_source_statistics                                <GID>
+mz_source_statuses                                  <GID>
+mz_sql_text_redacted                                <GID>
+mz_aws_privatelink_connection_statuses              <GID>
+mz_statement_execution_history_redacted             <GID>
 
 > SET database = materialize
 
@@ -703,7 +708,7 @@ mz_statement_execution_history_redacted
 > CREATE TABLE tester.test_table (a int)
 
 > SHOW TABLES FROM tester
-test_table
+test_table  <GID>
 
 # `SHOW TABLES` and `mz_tables` should agree.
 > SELECT COUNT(*) FROM mz_tables WHERE id LIKE 's%'

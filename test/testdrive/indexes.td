@@ -9,7 +9,7 @@
 
 $ set-arg-default single-replica-cluster=quickstart
 
-$ set-regex match=cluster1|quickstart replacement=<VARIABLE_OUTPUT>
+$ set-regex match=u\d+|cluster1|quickstart replacement=<VARIABLE_OUTPUT>
 
 $ set writer-schema={
     "name": "row",
@@ -37,7 +37,7 @@ $ kafka-ingest topic=data format=avro schema=${writer-schema}
 > SHOW INDEXES ON data
 
 > SHOW INDEXES ON data
-name    on  cluster key
+name    id  on  cluster key
 --------------------------------------------------------------------------
 > SET CLUSTER TO quickstart
 
@@ -46,9 +46,9 @@ name    on  cluster key
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data
-name                on      cluster             key
+name                id                on      cluster             key
 -------------------------------------------------------------------------------------------
-data_primary_idx    data    <VARIABLE_OUTPUT>   {a,b}
+data_primary_idx    <VARIABLE_OUTPUT> data    <VARIABLE_OUTPUT>   {a,b}
 > SET CLUSTER TO quickstart
 
 > SELECT index_position FROM mz_index_columns WHERE index_id LIKE '%u%'
@@ -70,7 +70,7 @@ position         name
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name    on  cluster key
+name    id  on  cluster key
 --------------------------------------------------------------------------
 > SET CLUSTER TO quickstart
 
@@ -79,9 +79,9 @@ name    on  cluster key
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name                    on          cluster             key
+name                    id                on          cluster             key
 ---------------------------------------------------------------------------------------------------
-data_view_primary_idx   data_view   <VARIABLE_OUTPUT>   {a,b}
+data_view_primary_idx   <VARIABLE_OUTPUT> data_view   <VARIABLE_OUTPUT>   {a,b}
 > SET CLUSTER TO quickstart
 
 # Materialized views do not have indexes automatically created
@@ -90,7 +90,7 @@ data_view_primary_idx   data_view   <VARIABLE_OUTPUT>   {a,b}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON matv
-name    on  cluster key
+name    id   on  cluster key
 --------------------------------------------------------------------------
 > SET CLUSTER TO quickstart
 
@@ -99,9 +99,9 @@ name    on  cluster key
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON matv
-name                on      cluster             key
+name                id                  on      cluster             key
 --------------------------------------------------------------------------------------------
-matv_primary_idx    matv    <VARIABLE_OUTPUT>   {b}
+matv_primary_idx    <VARIABLE_OUTPUT>   matv    <VARIABLE_OUTPUT>   {b}
 > SET CLUSTER TO quickstart
 
 # IF NOT EXISTS prevents adding multiple default indexes
@@ -109,9 +109,9 @@ matv_primary_idx    matv    <VARIABLE_OUTPUT>   {b}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name                    on          cluster             key
+name                    id                  on          cluster             key
 -------------------------------------------------------------------------------------------------
-data_view_primary_idx   data_view   <VARIABLE_OUTPUT>   {a,b}
+data_view_primary_idx   <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   {a,b}
 > SET CLUSTER TO quickstart
 
 # Additional default indexes have the same structure as the first
@@ -119,10 +119,10 @@ data_view_primary_idx   data_view   <VARIABLE_OUTPUT>   {a,b}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON matv
-name                on      cluster             key
+name                id                  on      cluster             key
 ------------------------------------------------------------------------------------------------
-matv_primary_idx    matv    <VARIABLE_OUTPUT>   {b}
-matv_primary_idx1   matv    <VARIABLE_OUTPUT>   {b}
+matv_primary_idx    <VARIABLE_OUTPUT>   matv    <VARIABLE_OUTPUT>   {b}
+matv_primary_idx1   <VARIABLE_OUTPUT>   matv    <VARIABLE_OUTPUT>   {b}
 > SET CLUSTER TO quickstart
 
 # Default indexes can be named
@@ -130,10 +130,10 @@ matv_primary_idx1   matv    <VARIABLE_OUTPUT>   {b}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name                    on          cluster             key
+name                    id                  on          cluster             key
 -----------------------------------------------------------------------------------------------
-data_view_primary_idx   data_view   <VARIABLE_OUTPUT>   {a,b}
-named_idx               data_view   <VARIABLE_OUTPUT>   {a,b}
+data_view_primary_idx   <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   {a,b}
+named_idx               <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   {a,b}
 > SET CLUSTER TO quickstart
 
 > DROP INDEX data_view_primary_idx
@@ -144,9 +144,9 @@ named_idx               data_view   <VARIABLE_OUTPUT>   {a,b}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name            on          cluster             key
+name            id                  on          cluster             key
 -------------------------------------------------------------------------------------------
-data_view_a_idx data_view   <VARIABLE_OUTPUT>   {a}
+data_view_a_idx <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   {a}
 > SET CLUSTER TO quickstart
 
 > DROP INDEX data_view_a_idx
@@ -157,10 +157,10 @@ data_view_a_idx data_view   <VARIABLE_OUTPUT>   {a}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name                    on          cluster             key
+name                    id                  on          cluster             key
 -----------------------------------------------------------------------------------------------
-data_view_b_a_idx       data_view   <VARIABLE_OUTPUT>   {b,a}
-data_view_expr_a_idx    data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
+data_view_b_a_idx       <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   {b,a}
+data_view_expr_a_idx    <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
 > SET CLUSTER TO quickstart
 
 > DROP INDEX data_view_b_a_idx
@@ -171,9 +171,9 @@ data_view_expr_a_idx    data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name        on          cluster             key
+name        id                  on          cluster             key
 ---------------------------------------------------------------------------------------------
-named_idx   data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
+named_idx   <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
 > SET CLUSTER TO quickstart
 
 > DROP INDEX named_idx
@@ -184,9 +184,9 @@ named_idx   data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON data_view
-name                    on          cluster             key
+name                    id                  on          cluster             key
 ------------------------------------------------------------------------------------------------------
-data_view_primary_idx   data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
+data_view_primary_idx   <VARIABLE_OUTPUT>   data_view   <VARIABLE_OUTPUT>   "{b - a,a}"
 > SET CLUSTER TO quickstart
 
 > SHOW CREATE INDEX data_view_primary_idx
@@ -204,15 +204,15 @@ materialize.public.data_view_primary_idx "CREATE INDEX \"data_view_primary_idx\"
 > CREATE INDEX ON foo (substr(z, 3))
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON foo
-foo_primary_idx foo <VARIABLE_OUTPUT>   {a,b,z}
-foo_expr_idx    foo <VARIABLE_OUTPUT>   "{a + b}"
-foo_expr_idx1   foo <VARIABLE_OUTPUT>   "{pg_catalog.substr(z, 3)}"
+foo_primary_idx <VARIABLE_OUTPUT> foo <VARIABLE_OUTPUT>   {a,b,z}
+foo_expr_idx    <VARIABLE_OUTPUT> foo <VARIABLE_OUTPUT>   "{a + b}"
+foo_expr_idx1   <VARIABLE_OUTPUT> foo <VARIABLE_OUTPUT>   "{pg_catalog.substr(z, 3)}"
 > SHOW INDEXES ON foo WHERE name = 'noexist'
 > SHOW INDEXES ON foo WHERE name = 'foo_expr_idx'
-foo_expr_idx    foo <VARIABLE_OUTPUT>   "{a + b}"
+foo_expr_idx    <VARIABLE_OUTPUT> foo <VARIABLE_OUTPUT>   "{a + b}"
 
 > SHOW INDEXES ON foo LIKE 'foo_primary%'
-foo_primary_idx foo <VARIABLE_OUTPUT>   {a,b,z}
+foo_primary_idx <VARIABLE_OUTPUT> foo <VARIABLE_OUTPUT>   {a,b,z}
 
 ! SHOW INDEXES ON nonexistent
 contains:unknown catalog item 'nonexistent'
@@ -226,10 +226,10 @@ contains:cannot show indexes on materialize.public.foo_primary_idx because it is
 > CREATE DEFAULT INDEX IN CLUSTER clstr ON foo;
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES IN CLUSTER clstr WHERE on = 'foo'
-foo_primary_idx1    foo clstr   {a,b,z}
+foo_primary_idx1    <VARIABLE_OUTPUT> foo clstr   {a,b,z}
 
 > SHOW INDEXES FROM public WHERE name = 'foo_primary_idx1'
-foo_primary_idx1    foo clstr   {a,b,z}
+foo_primary_idx1    <VARIABLE_OUTPUT> foo clstr   {a,b,z}
 
 > SET CLUSTER TO quickstart
 > DROP TABLE foo CASCADE
@@ -250,7 +250,7 @@ contains:unknown schema 'nonexistent'
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES
-bar_ind bar <VARIABLE_OUTPUT> {}
+bar_ind <VARIABLE_OUTPUT> bar <VARIABLE_OUTPUT> {}
 > SET CLUSTER TO quickstart
 
 > DROP TABLE bar CASCADE
@@ -260,7 +260,7 @@ bar_ind bar <VARIABLE_OUTPUT> {}
 
 > SET CLUSTER TO mz_introspection
 > SHOW INDEXES ON foo.bar
-bar_ind bar <VARIABLE_OUTPUT> {a}
+bar_ind <VARIABLE_OUTPUT> bar <VARIABLE_OUTPUT> {a}
 > SET CLUSTER TO quickstart
 
 > DROP CLUSTER clstr CASCADE;
@@ -268,7 +268,7 @@ bar_ind bar <VARIABLE_OUTPUT> {a}
 $ postgres-execute connection=postgres://mz_system@${testdrive.materialize-internal-sql-addr}/materialize
 ALTER SYSTEM SET enable_rbac_checks TO true
 
-> SHOW INDEXES IN CLUSTER mz_introspection
+> SELECT name, on, cluster, key FROM(SHOW INDEXES IN CLUSTER mz_introspection)
 mz_active_peeks_per_worker_s2_primary_idx                   mz_active_peeks_per_worker                   mz_introspection    {id,worker_id}
 mz_arrangement_batches_raw_s2_primary_idx                   mz_arrangement_batches_raw                   mz_introspection    {operator_id,worker_id}
 mz_arrangement_records_raw_s2_primary_idx                   mz_arrangement_records_raw                   mz_introspection    {operator_id,worker_id}

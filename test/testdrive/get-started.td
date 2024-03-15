@@ -17,16 +17,17 @@ $ set-arg-default single-replica-cluster=quickstart
 > CREATE SOURCE demo
   FROM LOAD GENERATOR AUCTION (TICK INTERVAL '50ms') FOR ALL TABLES
 
+$ set-regex match=s\d+ replacement=<GID>
 > SHOW SOURCES
-name          type           size                         cluster
------------------------------------------------------------------
-accounts      subsource      <null>                       <null>
-auctions      subsource      <null>                       <null>
-bids          subsource      <null>                       <null>
-demo          load-generator ${arg.default-replica-size}  ${arg.single-replica-cluster}
-demo_progress progress       <null>                       <null>
-organizations subsource      <null>                       <null>
-users         subsource      <null>                       <null>
+name          id      type           size                         cluster
+--------------------------------------------------------------------------
+accounts      <GID>   subsource      <null>                       <null>
+auctions      <GID>   subsource      <null>                       <null>
+bids          <GID>   subsource      <null>                       <null>
+demo          <GID>   load-generator ${arg.default-replica-size}  ${arg.single-replica-cluster}
+demo_progress <GID>   progress       <null>                       <null>
+organizations <GID>   subsource      <null>                       <null>
+users         <GID>   subsource      <null>                       <null>
 
 > SHOW COLUMNS FROM auctions
 end_time false "timestamp with time zone"

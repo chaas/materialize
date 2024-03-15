@@ -19,7 +19,7 @@ exact:COUNTER load generators do not support SCALE FACTOR values
   IN CLUSTER ${arg.single-replica-cluster}
   FROM LOAD GENERATOR AUCTION FOR ALL TABLES;
 
-> SHOW SOURCES
+> SELECT name, type, size, cluster FROM SHOW SOURCES
 accounts                subsource      <null>                         <null>
 auction_house           load-generator ${arg.default-replica-size}    ${arg.single-replica-cluster}
 auction_house_progress  progress       <null>                         <null>
@@ -43,7 +43,7 @@ contains:LOAD GENERATOR source validation: FOR TABLES (..) unsupported
   IN CLUSTER ${arg.single-replica-cluster}
   FROM LOAD GENERATOR AUCTION FOR ALL TABLES;
 
-> SHOW SOURCES FROM another;
+> SELECT name, type, size, cluster FROM SHOW SOURCES (SHOW SOURCES FROM another);
 accounts                subsource      <null>                       <null>
 auction_house           load-generator ${arg.default-replica-size}  ${arg.single-replica-cluster}
 auction_house_progress  progress       <null>                       <null>

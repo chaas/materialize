@@ -37,7 +37,7 @@ SELECT size FROM (
     SHOW SOURCES
 ) WHERE name = 'gen'
 
-> SHOW SOURCES
+> SELECT name, type, size, cluster FROM SHOW SOURCES
 name           type            size             cluster
 -------------------------------------------------------
  customer      subsource       <null>           <null>

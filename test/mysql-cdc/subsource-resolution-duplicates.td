@@ -52,9 +52,9 @@ detail: subsources referencing table: x, y
   FOR SCHEMAS (other);
 
 > SHOW sources
- mz_source          mysql     ${arg.default-replica-size} quickstart
- mz_source_progress progress  <null> <null>
- t                  subsource <null> <null>
+ mz_source          <GID> mysql     ${arg.default-replica-size} quickstart
+ mz_source_progress <GID> progress  <null> <null>
+ t                  <GID> subsource <null> <null>
 
 $ mysql-execute name=mysql
 DROP DATABASE other;

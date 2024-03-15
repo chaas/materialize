@@ -50,20 +50,20 @@ contains:column "a" specified more than once
 
 > SELECT * FROM t;
 
-> SHOW TABLES;
+> SELECT name FROM(SHOW TABLES);
 name
 ----
 t
 
 > SHOW SOURCES;
-name    type  size  cluster
----------------------------
+name    id  type  size  cluster
+--------------------------------
 
 > SHOW INDEXES ON t;
 
 > CREATE DEFAULT INDEX on t
 
-> SHOW INDEXES ON t
+> SELECT name, on, cluster, key FROM SHOW INDEXES ON t
 name            on          cluster         key
 -----------------------------------------------------------------------------------
 t_primary_idx   t           <CLUSTER_NAME>  {a,b}
@@ -239,20 +239,20 @@ contains:unknown catalog item 't'
 ! SHOW INDEXES ON t;
 contains:unknown catalog item 't'
 
-> SHOW TABLES;
+> SELECT name FROM(SHOW TABLE)S;
 name
 ----
 v
 
 > SHOW TABLES LIKE 'foo'
-> SHOW TABLES LIKE 'v%'
+> SELECT name FROM(SHOW TABLES LIKE 'v%')
 v
-> SHOW TABLES WHERE name = 'v'
+> SELECT name FROM(SHOW TABLES WHERE name = 'v')
 v
 
 > SHOW SOURCES;
-name    type   size   cluster
------------------------------
+name    id  type   size   cluster
+----------------------------------
 
 > CREATE TABLE t (a int, b text NOT NULL)
 

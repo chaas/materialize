@@ -171,12 +171,12 @@ contains:catalog item 'materialize.public.i1' is an index and so cannot be depen
 
 > CREATE INDEX i2 ON v2a(x*2);
 
-> SHOW INDEXES ON v2a;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v2a);
 name    on  cluster         key
 ---------------------------------------------------------------------------------------
 i2      v2a <CLUSTER_NAME>  "{x * 2}"
 
-> SHOW INDEXES ON v2;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v2);
 name    on  cluster         key
 ------------------------------------------------------------------------------------
 i1      v2  <CLUSTER_NAME>  {x}
@@ -188,7 +188,7 @@ i1      v2  <CLUSTER_NAME>  {x}
 ! DROP VIEW v2a;
 contains:unknown catalog item 'v2a'
 
-> SHOW INDEXES ON v2;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v2);
 name    on  cluster         key
 -----------------------------------------------------------------------------------
 i1      v2  <CLUSTER_NAME>  {x}
@@ -202,14 +202,14 @@ contains:unknown catalog item 'i2'
 
 > CREATE INDEX i3 ON v4a(y);
 
-> SHOW INDEXES ON v4a;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v4a);
 name    on  cluster         key
 ------------------------------------------------------------------------------------
 i3      v4a <CLUSTER_NAME>  {y}
 
 > CREATE INDEX i4 ON v4(x);
 
-> SHOW INDEXES ON v4;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v4);
 name    on  cluster         key
 ----------------------------------------------------------------------------------
 i4      v4  <CLUSTER_NAME>  {x}
@@ -223,7 +223,7 @@ contains:unknown catalog item 'v4a'
 ! DROP INDEX i3;
 contains:unknown catalog item 'i3'
 
-> SHOW INDEXES ON v4;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v4);
 name    on  cluster         key
 ----------------------------------------------------------------------------------
 i4      v4  <CLUSTER_NAME>  {x}
@@ -232,14 +232,14 @@ i4      v4  <CLUSTER_NAME>  {x}
 
 > CREATE INDEX i5 ON v5(substr);
 
-> SHOW INDEXES ON v5;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON v5);
 name    on  cluster         key
 ----------------------------------------------------------------------------------
 i5      v5  <CLUSTER_NAME>  {substr}
 
 > CREATE VIEW multicol AS SELECT 'a' AS a, 'b' AS b, 'c' AS c, 'd' AS d
 > CREATE INDEX i6 ON multicol (2, a, 4)
-> SHOW INDEXES ON multicol
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON multicol)
 name    on          cluster         key
 -------------------------------------------------------------------------------
 i6      multicol    <CLUSTER_NAME>  {b,a,d}
@@ -275,7 +275,7 @@ contains:unknown catalog item 'i4'
 # Test that dependent indexes do not prevent source deletion when restrict is specified
 > CREATE INDEX j1 on s3(ascii(y))
 
-> SHOW INDEXES ON s3;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON s3);
 name    on  cluster         key
 ----------------------------------------------------------------------------------------------
 j1      s3  <CLUSTER_NAME>  "{pg_catalog.ascii(y)}"
@@ -301,12 +301,12 @@ contains:unknown catalog item 'j1'
 
 > CREATE INDEX j3 on w(z);
 
-> SHOW INDEXES ON s4;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON s4);
 name    on  cluster         key
 ------------------------------------------------------------------------------------
 j2      s4  <CLUSTER_NAME>  "{x + 2}"
 
-> SHOW INDEXES ON w;
+> SELECT name, on, cluster, key FROM (SHOW INDEXES ON w);
 name    on          cluster         key
 -----------------------------------------------------------------------------
 j3      w           <CLUSTER_NAME>  {z}

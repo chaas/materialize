@@ -168,7 +168,7 @@ ALTER SYSTEM SET pg_source_snapshot_statement_timeout = 1000
 # TODO: enable once we land #24586
 # $ postgres-verify-slot connection=postgres://postgres:postgres@postgres slot=materialize_% active=true
 
-> SHOW SUBSOURCES ON test_slot_source
+> SELECT name, type FROM (SHOW SUBSOURCES ON test_slot_source)
 pk_table subsource
 test_slot_source_progress progress
 
@@ -300,7 +300,7 @@ detail:referenced items: no_replica_identity
     tstzrange_table
   );
 
-> SHOW SOURCES
+> SELECT name, type, size, cluster FROM SHOW SOURCES
 array_types_table     subsource <null>  <null>
 conflict_table        subsource <null>  <null>
 create                subsource <null>  <null>
@@ -747,7 +747,7 @@ contains:TEXT COLUMNS refers to table not currently being added
     public.another_enum_table
   );
 
-> SELECT * FROM (SHOW SOURCES) WHERE name LIKE '%enum%';
+> SELECT name, type, size, cluster FROM (SHOW SOURCES) WHERE name LIKE '%enum%';
 another_enum_table      subsource <null> <null>
 enum_source             postgres  ${arg.default-replica-size} cdc_cluster
 enum_source_progress    progress  <null> <null>
@@ -792,7 +792,7 @@ true
     another_schema
   );
 
-> SHOW SOURCES
+> SELECT name, type, size, cluster FROM SHOW SOURCES
 another_source          postgres  ${arg.default-replica-size} cdc_cluster
 another_source_progress progress  <null> <null>
 another_table           subsource <null> <null>

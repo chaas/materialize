@@ -106,7 +106,7 @@ INSERT INTO table_g VALUES (2, 'two');
   )
   FOR SCHEMAS (public);
 
-> SHOW SUBSOURCES ON mz_source
+> SELECT name, type FROM (SHOW SUBSOURCES ON mz_source)
 mz_source_progress    progress
 table_a               subsource
 table_b               subsource
@@ -182,7 +182,7 @@ table_g               subsource
 # 1 one
 # 2 two
 #
-# > SHOW SUBSOURCES ON mz_source
+# > SELECT name, type FROM (SHOW SUBSOURCES ON mz_source)
 # mz_source_progress    progress
 # table_b               subsource
 # table_c               subsource
@@ -245,7 +245,7 @@ table_g               subsource
 # > SELECT regexp_match(create_sql, 'TEXT COLUMNS = \((.*?)\)')[1] FROM (SHOW CREATE SOURCE mz_source);
 # <null>
 
-# > SHOW SUBSOURCES ON mz_source
+# > SELECT name, type FROM (SHOW SUBSOURCES ON mz_source)
 # mz_source_progress    progress
 # table_g               subsource
 
@@ -297,7 +297,7 @@ table_g               subsource
 # 1 one
 # 2 two
 #
-# > SHOW SUBSOURCES ON mz_source
+# > SELECT name, type FROM (SHOW SUBSOURCES ON mz_source)
 # mz_source_progress progress
 # table_a            subsource
 # table_g            subsource

@@ -50,7 +50,7 @@ name       type
 ------------------------------
 testconn   kafka
 
-> SHOW CONNECTIONS
+> SELECT name, type FROM SHOW CONNECTIONS
 testconn    kafka
 
 > SHOW CREATE CONNECTION testconn

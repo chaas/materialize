@@ -143,7 +143,7 @@ ALTER SYSTEM SET mysql_source_snapshot_max_execution_time = 1000
   FROM MYSQL CONNECTION mysql_conn
   FOR TABLES (public.pk_table);
 
-> SHOW SUBSOURCES ON test_slot_source
+> SELECT name, type FROM (SHOW SUBSOURCES ON test_slot_source)
 pk_table subsource
 test_slot_source_progress progress
 
@@ -288,25 +288,26 @@ contains: CREATE SOURCE specifies DETAILS option
     public."""literal_quotes"""
   );
 
+$ set-regex match=u\d+ replacement=<GID>
 > SHOW SOURCES
-conflict_table        subsource <null>  <null>
-create                subsource <null>  <null>
-escaped_text_table    subsource <null>  <null>
-large_text            subsource <null>  <null>
-mixED_CAse            subsource <null>  <null>
-multipart_pk          subsource <null>  <null>
-mz_source             mysql  ${arg.default-replica-size}  cdc_cluster
-mz_source_progress    progress  <null>  <null>
-nonpk_table           subsource <null>  <null>
-nulls_table           subsource <null>  <null>
-pk_table              subsource <null>  <null>
-trailing_space_nopk   subsource <null>  <null>
-trailing_space_pk     subsource <null>  <null>
-types_table           subsource <null>  <null>
-utf8_table            subsource <null>  <null>
-"\"literal_quotes\""  subsource <null>  <null>
-"space table"         subsource <null>  <null>
-таблица               subsource <null>  <null>
+conflict_table        <GID> subsource <null>  <null>
+create                <GID> subsource <null>  <null>
+escaped_text_table    <GID> subsource <null>  <null>
+large_text            <GID> subsource <null>  <null>
+mixED_CAse            <GID> subsource <null>  <null>
+multipart_pk          <GID> subsource <null>  <null>
+mz_source             <GID> mysql  ${arg.default-replica-size}  cdc_cluster
+mz_source_progress    <GID> progress  <null>  <null>
+nonpk_table           <GID> subsource <null>  <null>
+nulls_table           <GID> subsource <null>  <null>
+pk_table              <GID> subsource <null>  <null>
+trailing_space_nopk   <GID> subsource <null>  <null>
+trailing_space_pk     <GID> subsource <null>  <null>
+types_table           <GID> subsource <null>  <null>
+utf8_table            <GID> subsource <null>  <null>
+"\"literal_quotes\""  <GID> subsource <null>  <null>
+"space table"         <GID> subsource <null>  <null>
+таблица               <GID> subsource <null>  <null>
 
 > SELECT status FROM mz_internal.mz_source_statuses WHERE name = 'mz_source';
 running
@@ -687,10 +688,10 @@ contains:TEXT COLUMNS refers to columns not currently being added
   );
 
 > SELECT * FROM (SHOW SOURCES) WHERE name LIKE '%enum%';
-another_enum_table      subsource <null> <null>
-enum_source             mysql     ${arg.default-replica-size} cdc_cluster
-enum_source_progress    progress  <null> <null>
-enum_table              subsource <null> <null>
+another_enum_table      <GID> subsource <null> <null>
+enum_source             <GID> mysql     ${arg.default-replica-size} cdc_cluster
+enum_source_progress    <GID> progress  <null> <null>
+enum_table              <GID> subsource <null> <null>
 
 > SELECT * FROM enum_table
 var0
@@ -722,9 +723,9 @@ INSERT INTO pk_table VALUES (99999, 'abc');
   );
 
 > SHOW SOURCES
-another_source          mysql  ${arg.default-replica-size} cdc_cluster
-another_source_progress progress  <null> <null>
-another_table           subsource <null> <null>
+another_source          <GID> mysql  ${arg.default-replica-size} cdc_cluster
+another_source_progress <GID> progress  <null> <null>
+another_table           <GID> subsource <null> <null>
 
 > DROP SOURCE another_source
 
