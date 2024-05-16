@@ -6573,6 +6573,15 @@ ON mz_internal.mz_source_statistics (id)",
     is_retained_metrics_object: true,
 };
 
+pub const MZ_SOURCE_STATISTICS_NO_HISTORY_IND: BuiltinIndex = BuiltinIndex {
+    name: "mz_source_statistics_no_history_ind",
+    schema: MZ_INTERNAL_SCHEMA,
+    oid: oid::INDEX_MZ_SOURCE_STATISTICS_IND_OID,
+    sql: "IN CLUSTER mz_introspection
+ON mz_internal.mz_source_statistics (id)",
+    is_retained_metrics_object: false,
+};
+
 pub static MZ_SINK_STATISTICS: Lazy<BuiltinView> = Lazy::new(|| BuiltinView {
     name: "mz_sink_statistics",
     schema: MZ_INTERNAL_SCHEMA,
@@ -7167,6 +7176,7 @@ pub static BUILTINS_STATIC: Lazy<Vec<Builtin<NameReference>>> = Lazy::new(|| {
         Builtin::Source(&MZ_SINK_STATISTICS_RAW),
         Builtin::View(&MZ_SOURCE_STATISTICS),
         Builtin::Index(&MZ_SOURCE_STATISTICS_IND),
+        Builtin::Index(&MZ_SOURCE_STATISTICS_NO_HISTORY_IND),
         Builtin::View(&MZ_SINK_STATISTICS),
         Builtin::Index(&MZ_SINK_STATISTICS_IND),
         Builtin::View(&MZ_STORAGE_USAGE),
