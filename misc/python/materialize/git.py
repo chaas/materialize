@@ -342,6 +342,16 @@ def get_branch_name() -> str:
     command = ["git", "branch", "--show-current"]
     return spawn.capture(command).strip()
 
+def get_commits_between_versions(
+    from_version: MzVersion, to_version: MzVersion
+) -> list[str]:
+    """Get the list of commits between two versions."""
+    output = spawn.capture(
+        ["git", "log", f"{from_version}..{to_version}", "--pretty=format:%B==END_COMMIT=="],
+    )
+    commits = output.split("==END_COMMIT==")
+    return [commit.strip() for commit in commits]
+
 
 # Work tree mutation
 
